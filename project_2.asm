@@ -1,0 +1,77 @@
+.data
+.text
+	.globl main
+main:
+	
+##Use bubble sort algorithm to sort content of array a0 which has a1 elements
+##Params:
+##	$a0: poiter to first element of input array
+##	$a1: number of element
+##Return:
+##	none
+##Registers used:
+##	$s0:	save a0
+##	$s1:	save a1
+##	$t0:	i (couting 1)
+##	$t1:	j (couting 2)
+##	$t2: 	commpare value
+##	$t3:	a[j]
+##	$t4:	a[j+1]
+##	$t5:	temp
+_bubbleSort:
+##Procerduce header----------------------------------------------------------
+	addi $sp, $sp, -32		#Create stack frame, framesize = 32
+	sw $ra, 28($sp)			#Preserve return address
+	sw $fp, 24($sp)			#Preserve frame pointer
+	sw $s0, 20($sp)			#Preserve s0
+	sw $s1, 16($sp)			#Preserve s1
+	addi $fp, $sp, 32		#Move frame pointer to base of frame
+	
+	move $s0, $a0			#Get a0 from caller
+	move $s1, $a1			#Get a1 from caller
+##---------------------------------------------------End of procerduce header
+	
+	li $t5, 2			#temporarily set t0 = 2
+	slt $t2, $s1, $t5		#check if length of array < 2
+	beq $t2, 1, _bubbleSort.return	#if yes, return
+	
+	move $t0, $zero			#i = 0
+_bubbleSort.loopI:
+	move $t1, $zero			#j = 0
+	move $s0, $a0			#s0 = a0
+_bubbleSort.loopJ:
+	lw $t3, ($s0)			#t3 = a[j]
+	lw $t4, 4($s0)			#t4 = a[j+1]	
+	
+	sgt $t2, $t3, $t4		#check if a[j] > a[j+1]
+	beq $t2, 0, _bubbleSort.continueLoopJ	#if not continue loop j
+	
+	sw $t4, ($s0)			#swap a[i]
+	sw $t3, 4($s0)			#	and a[j+1]
+_bubbleSort.continueLoopJ:
+	addi $t1, $t1, 1		#j++
+	addi $s0, $s0, 4		#a[j] = a[j+1]
+	
+	#t5 = n-i-1
+	sub $t5, $s1, $t0		#t5 = n - i
+	addi $t5, $t5, -1		#t5 = t5 - 1
+	
+	slt $t2, $t1, $t5		#check if j < n-i-1
+	beq $t2, 1, _bubbleSort.loopJ	#if yes then loopJ
+	
+	addi $t0, $t0, 1		#i++
+	addi $t5, $s1, -1		#t5 = n - i
+	
+	slt $t2, $t1, $t5		#check if i < n-1
+	beq $t2, 1, _bubbleSort.loopI	#if yes then loopI
+	
+##Procerduce footer------------------------------------------------
+_bubbleSort.return:
+	lw $s1, 16($sp)			#Restore s1
+	lw $s2, 20($sp)			#restore s2
+	lw $fp, 24($sp)			#Restore frame pointer
+	lw $ra, 28($sp)			#Restore return address
+	addi $sp, $sp, 32		#Restore stack pointer
+	jr $ra				#Return
+##------------------------------------------End of procerduce footer
+	
