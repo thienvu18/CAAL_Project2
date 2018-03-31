@@ -1,12 +1,21 @@
 .data
+	a: .word 1,9,5,3,7,11,0,2,8,6
+	n: .word 10
 .text
 	.globl main
 main:
+	la $a0, a
+	lw $a1, n
+	jal _bubbleSort
 	
-##Use bubble sort algorithm to sort content of array a0 which has a1 elements
+main.exit:
+	li $v0, 10
+	syscall	
+	
+##Use bubble sort algorithm to sort content of array a which has n elements
 ##Params:
-##	$a0: poiter to first element of input array
-##	$a1: number of element
+##	$a0: a
+##	$a1: n
 ##Return:
 ##	none
 ##Registers used:
@@ -44,11 +53,11 @@ _bubbleSort.loopJ:
 	lw $t4, 4($s0)			#t4 = a[j+1]	
 	
 	sgt $t2, $t3, $t4		#check if a[j] > a[j+1]
-	beq $t2, 0, _bubbleSort.continueLoopJ	#if not continue loop j
+	beq $t2, 0, _bubbleSort.loopJ.continue	#if not continue loop j
 	
 	sw $t4, ($s0)			#swap a[i]
 	sw $t3, 4($s0)			#	and a[j+1]
-_bubbleSort.continueLoopJ:
+_bubbleSort.loopJ.continue:
 	addi $t1, $t1, 1		#j++
 	addi $s0, $s0, 4		#a[j] = a[j+1]
 	
@@ -62,7 +71,7 @@ _bubbleSort.continueLoopJ:
 	addi $t0, $t0, 1		#i++
 	addi $t5, $s1, -1		#t5 = n - i
 	
-	slt $t2, $t1, $t5		#check if i < n-1
+	slt $t2, $t0, $t5		#check if i < n-1
 	beq $t2, 1, _bubbleSort.loopI	#if yes then loopI
 	
 ##Procerduce footer------------------------------------------------
@@ -74,4 +83,3 @@ _bubbleSort.return:
 	addi $sp, $sp, 32		#Restore stack pointer
 	jr $ra				#Return
 ##------------------------------------------End of procerduce footer
-	
