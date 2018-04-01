@@ -1,4 +1,5 @@
 .data
+	menu: .asciiz "============= Menu ============\n1. Nhap mang\n2. Xuat mang\n3. Liet ke so nguyen to trong mang\n4. Liet ke so hoan thien trong mang\n5. Tinh tong cac so chinh phuong trong mang\n6. Tinh trung binh cong cac so doi xung trong mang\n7. Tim gia tro lon nhat trong mang\n8. Sap xep mang tang dan theo Selection sort\n9. Sap xep mang giam dan theo Bubble sort\n10. Thoat\n================================\n"
 	a: .word 1,9,5,3,7,11,0,2,8,6
 	n: .word 10
 .text
@@ -7,6 +8,10 @@ main:
 	la $a0, a
 	lw $a1, n
 	jal _bubbleSort
+	
+	li $v0, 4
+	la $a0, menu
+	syscall
 	
 main.exit:
 	li $v0, 10
