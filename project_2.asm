@@ -3,8 +3,17 @@
 	choose_msg:	.asciiz	"Nhap so ban chon: "
 	pause_msg:	.asciiz	"Nhan enter de tiep tuc."
 	chosen:		.word	1
-	array: 		.word 1,9,5,3
+#	array: 		.word 1,9,5,3
 	n: 		.word 4
+        
+        	tb1:  .asciiz  "Nhap n: "
+	tb2:  .asciiz  "a[ "
+	tb3:  .asciiz  " ] = "
+	output:  .asciiz  "\nMang da nhap: "
+	arr:  .word  0:100   # int array[100]
+
+	tb4: .asciiz "Tong cac so chinh phuong trong mang: "
+
 .text
 	.globl main
 main:
@@ -49,6 +58,10 @@ main.execute:
 	beq $t0, 10, main.exit			#If user choose 10 then exit
 	
 main.exe_ReadArray:
+	#Call ReadArray
+	la $a0, array			#Load dia chi mang vao a0
+	lw $a1, n			#Load so phan tu mang vao a1
+	jal _ReadArray			#Goi ham
 	#Pause program
 	j main.pause
 main.exe_PrintArray:
@@ -66,6 +79,9 @@ main.exe_ListPerfects:
 	#Pause program
 	j main.pause
 main.exe_SumSquareNums:
+        la $a0, array
+        lw $a1, n
+        jal _SumSquareNums
 	#Pause program
 	j main.pause
 main.exe_AveragePalindromes:
@@ -307,4 +323,144 @@ L4:
 	addi $sp,$sp,56
 
 	#return address $ra
+	jr $ra
+
+# $t0 so phan tu mang	
+# $t1 chi so phan tu mang
+# $a1 dia chi cac phan tu mang
+# $s0 thanh ghi luu cac phan tu mang
+_ReadArray:
+
+_ReadArray.TaoVongLap:
+	li $t0, 0   # i = 0
+	la $s0, arr #load dia chi mang vao s0
+	#Xuat tb1
+
+_ReadArray.XuatTB1:
+	li $v0,4
+	la $a0,tb1
+	syscall
+_ReadArray.Nhapn:
+	#Nhap n
+	li $v0,5
+	syscall
+
+	#Luu vao n
+	sw $v0,n
+
+	#Truyen tham so
+	lw $s1,n
+	
+	#Xuat tb2
+_ReadArray.XuatTB2:
+	li $v0,4
+	la $a0,tb2
+	syscall
+
+	#xuat chi so i
+_ReadArray.Xuati:
+	li $v0,1
+	move $a0,$t0
+	syscall
+
+	#Xuat tb3
+_ReadArray.XuatTB3:
+	li $v0,4
+	la $a0,tb3
+	syscall
+
+	#Nhap so nguyen
+_ReadArray.Nhapmang:
+	li $v0,5
+	syscall
+
+	#Luu vao a[i] ($s0)
+	sw $v0,($s0)
+	
+	#Tang dia chi mang
+	addi $s0 , $s0 , 4
+
+	#Tang chi so i
+	addi $t0,$t0,1
+_ReadArray.KiemTra:	
+	slt $t1 , $t0, $s1
+	beq $t1 , 1 , _ReadArray.XuatTB2
+#Xuat thong bao tong cac so chinh phuong
+__SumSquareNums.XuatKQTongCP:
+	li $v0,4
+	la $a0,tb4
+	syscall
+	j __SumSquareNums.TongSoChinhPhuong
+	move $s2, $v0
+#xuat $s2
+	li $v0,1
+	move $a0,$s2
+	syscall
+
+__SumSquareNums.TongSoChinhPhuong:
+#Phan dau ham
+	
+	#khai bao kich thuoc stack
+	addi $sp,$sp,-36
+	#backup cac thanh ghi
+	sw $ra,($sp)
+	sw $t0,4($sp)
+	sw $s0,8($sp)
+	sw $t1,12($sp)
+	sw $s1,16($sp)
+	sw $t2,20($sp) 
+	sw $t3,24($sp)
+	sw $t4,28($sp)
+	sw $t5,32($sp)
+	li   $t3, 0		#j=0
+	addi $t3, $t3, 1	#j=1
+	lw $t1,($s0)
+#Phan than
+__SumSquareNums.Lap:
+	#Lay gia tri a[i] vao $t1
+	
+	#Tinh tich t0*t0
+	mult $t3, $t3
+	
+	mtlo $t4
+
+	beq $t4,$t1, _SumSquareNums.CongVaoTong
+#	j _SumSquareNums.Tangj
+
+_SumSquareNums.Tangj:
+	addi $t3, $t3, 1
+	#Kiem tra i <= n (n < i ?)
+#	slt $t2,$t0,$t1			#so sanh t0 < t1 tuc la i voi a[i]
+	slt $t2, $t3, $t1		#so sanh t3 < t1 tuc la j voi a[i]
+
+	beq $t2,1, _SumSquareNums.Lap		#so sanh t3 va 0 roi chay ham
+	beq $t2,0, _SumSquareNums.Tangi
+
+_SumSquareNums.Tangi:
+	addi $t0, $t0, 1		#tang i lên
+	lw $t1,($s0)
+	slt $t5, $t0, $s1
+	beq $t5,1 , _SumSquareNums.Lap
+	#luu ket qua tra ve cua ham
+	j _SumSquareNums.KetThuc
+
+_SumSquareNums.CongVaoTong:
+	add $v0,$v0,$t1		# cong v0=v0 + t1 la tong so chinh phuong
+	#Lay ket qua tra ve luu vao $s1
+#cuoi thu tuc
+_SumSquareNums.KetThuc:
+	#restore cac thanh ghi
+	lw $ra,($sp)
+	lw $t0,4($sp)
+	lw $s0,8($sp)
+	lw $t1,12($sp)
+	lw $s1,16($sp)
+	lw $t2,20($sp)
+	lw $t3,20($sp)
+	lw $t4,28($sp)
+	lw $t5,32($sp)
+	#xoa stack
+	addi $sp,$sp,36
+
+	#nhay ve dia chi goi ham $ra
 	jr $ra
