@@ -52,6 +52,11 @@ main.exe_ReadArray:
 	#Pause program
 	j main.pause
 main.exe_PrintArray:
+        #Call PrintArray
+	la $a0, array			#Load array address to a0
+	lw $a1, n			#Load number lenght of array to a1
+        jal _PrintArray 
+        
 	#Pause program
 	j main.pause
 main.exe_ListPrimes:
@@ -64,6 +69,11 @@ main.exe_SumSquareNums:
 	#Pause program
 	j main.pause
 main.exe_AveragePalindromes:
+        #Call AveragePalindromes
+	la $a0, array			#Load array address to a0
+	lw $a1, n			#Load number lenght of array to a1
+        jal _AveragePalindromes
+        
 	#Pause program
 	j main.pause
 main.exe_FindMin:
@@ -170,3 +180,131 @@ _bubbleSort.return:
 	addi $sp, $sp, 32		#Restore stack pointer
 	jr $ra				#Return
 ##------------------------------------------End of procerduce footer
+_PrintArray:
+	#size of stack
+	addi $sp,$sp,-20
+	#backup registers
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $t0,12($sp)
+	sw $t1,16($sp)
+
+	move $s0, $a0			#save address of arr to $s0
+	move $s1, $a1			#save size of arr to $s1	
+	#innit i = 0
+	li $t0,0
+outputLoop:
+	
+	li $v0, 1			#print a[i]
+	lw $a0, ($s0)
+	syscall
+
+	li $v0, 11			#printf space
+	li $a0, 32 			#32 = space
+	syscall
+
+	addi $s0, $s0, 4		#increase address of arr
+	
+	addi $t0, $t0, 1		#i++
+
+	slt $t1, $t0, $s1		#if i < n then goto outputLoop
+	bne $t1, $0, outputLoop
+
+	#restore registers
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $t0,12($sp)
+	lw $t1,16($sp)
+
+	#delete stack
+	addi $sp,$sp,20
+
+	#return adrress $ra
+	jr $ra
+
+_AveragePalindromes:	
+	#size of stack
+	addi $sp,$sp,-56
+	#backup registers
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $s2,12($sp)
+	sw $s3,16($sp)
+	sw $s4,20($sp)
+	sw $t0,24($sp)
+	sw $t1,28($sp)
+	sw $t2,32($sp)
+	sw $t3,36($sp)
+	sw $t4,40($sp)
+	sw $t5,44($sp)
+	sw $t6,48($sp)
+	sw $t7,52($sp)
+
+	move $s0, $a0			#save address of arr to $s0
+	move $s1, $a1			#save size of arr to $s1
+	
+	li $t0, 0			#init i = 0
+	li $t1, 0			#init amount of symmetric numbers k = 0
+	li $s2, 0			#init result = 0
+
+LoopOfI:
+	lw $t2, ($s0)			#$t2 = a[i]
+	slti $t3, $t2, 11 		#if a[i] > 10 go L0
+	beq $t3, $0, L0			
+					#else
+L2:
+	addi $t0, $t0, 1		#i++
+	addi $s0, $s0, 4		#increase address of a[i]
+	slt $t3, $t0, $s1 		#if i < n then goto LoopOfI
+	bne $t3, $0, LoopOfI		
+	j L3				#else goto L3
+L0:
+	li $s3, 0			#init s= 0
+	lw $s4, ($s0)			#init temp = a[i]
+LoopOfSeperate:
+	div $s4, $s4, 10		#temp /= 10
+	mflo $t4			#lo
+	mfhi $t5			#hi
+	li $t6, 10			#$t6 = 10
+	mult $s3, $t6			#s *= 10
+	mflo $t7			#result of s
+	move $s3, $t7			
+	add $s3, $s3, $t5		#s += hi
+	bne $t4, $0, LoopOfSeperate	#if lo != 0 goto LoopOfSeperate
+	beq $s3, $t2, L1
+	j L2
+L1:
+	add $s2, $s2, $t2		#s+=a[i]
+	addi $t1, $t1, 1		#k++
+	j L2
+L3:
+	#result
+	beq $s2, $0, L4
+	div $s2, $t1
+	mflo $s2
+L4:
+	move $v0, $s2			#save $s2 to $v0
+	#restore registers
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $s2,12($sp)
+	lw $s3,16($sp)
+	lw $s4,20($sp)
+	lw $t0,24($sp)
+	lw $t1,28($sp)
+	lw $t2,32($sp)
+	lw $t3,36($sp)
+	lw $t4,40($sp)
+	lw $t5,44($sp)
+	lw $t6,48($sp)
+	lw $t7,52($sp)
+
+	#delete stack
+	addi $sp,$sp,56
+
+	#return address $ra
+	jr $ra
