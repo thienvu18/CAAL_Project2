@@ -3,7 +3,7 @@
 	choose_msg:	.asciiz	"Nhap so ban chon: "
 	pause_msg:	.asciiz	"Nhan enter de tiep tuc."
 	chosen:		.word	1
-#	array: 		.word 1,9,5,3
+	array: 		.word 1,9,5,3
 	n: 		.word 4
         
         	tb1:  .asciiz  "Nhap n: "
@@ -52,7 +52,7 @@ main.execute:
 	beq $t0, 4, main.exe_ListPerfects	#If user choose 4 then jump to ListPerfects
 	beq $t0, 5, main.exe_SumSquareNums	#If user choose 5 then jump to SumSquareNums
 	beq $t0, 6, main.exe_AveragePalindromes	#If user choose 6 then jump to AveragePalindromes
-	beq $t0, 7, main.exe_FindMin		#If user choose 7 then jump to FindMin
+	beq $t0, 7, main.exe_FindMax		#If user choose 7 then jump to FindMax
 	beq $t0, 8, main.exe_SelectionSort	#If user choose 8 then jump to SelectionSort
 	beq $t0, 9, main.exe_BubbleSort		#If user choose 9 then jump to BubbleSort
 	beq $t0, 10, main.exit			#If user choose 10 then exit
@@ -92,10 +92,28 @@ main.exe_AveragePalindromes:
         
 	#Pause program
 	j main.pause
-main.exe_FindMin:
+main.exe_FindMax:
+	la $a0, array			#Load array address to a0
+	lw $a1, n			#Load number lenght of array to a1
+	jal _FindMax			#Call
+	
+	move $t0,$v1
+
+	li $v0, 4
+	la $a0,tb1
+	syscall
+
+	li $v0, 1
+	move $a0, $t0
+	syscall
 	#Pause program
 	j main.pause
 main.exe_SelectionSort:
+	#Call SelectionSort
+	la $a0, array			#Load array address to a0
+	lw $a1, n			#Load number lenght of array to a1
+	jal _selectionSort		#Call
+	
 	#Pause program
 	j main.pause
 main.exe_BubbleSort:
@@ -437,7 +455,7 @@ _SumSquareNums.Tangj:
 	beq $t2,0, _SumSquareNums.Tangi
 
 _SumSquareNums.Tangi:
-	addi $t0, $t0, 1		#tang i lên
+	addi $t0, $t0, 1		#tang i lï¿½n
 	lw $t1,($s0)
 	slt $t5, $t0, $s1
 	beq $t5,1 , _SumSquareNums.Lap
@@ -462,5 +480,168 @@ _SumSquareNums.KetThuc:
 	#xoa stack
 	addi $sp,$sp,36
 
-	#nhay ve dia chi goi ham $ra
+## Find Max 
+##Params:
+##	$a0: a
+##	$a1: n
+##Return:
+##	$s2	:max
+##Registers used:
+##	$s0:	save a0
+##	$s1:	save a1
+##	$s2:	min 
+##	$t0:	i 
+##	$t1:	a[i]
+##	$t2:	compare value
+
+_FindMax:
+##Procerduce header----------------------------------------------------------
+	addi $sp,$sp,-28
+	
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $s2,12($sp)
+	sw $t0,16($sp)
+	sw $t1,20($sp)
+	sw $t2,24($sp)
+##-----------------------------------------------------End of procerduce header
+	move $s0,$a0
+	move $s1,$a1
+	lw $s2, ($s0)			# max = a[i]
+	move $t0, $zero			#i = 0
+	
+_FindMax.for:	        
+	lw $t1, ($s0)				#t1 = a[j]
+	slt $t2, $s2, $t1               	#if a[j] > max
+	beq $t2, 0,_FindMax.for.continue        #if a[j] < max
+
+	move $s2, $t1				#min = a[j]
+_FindMax.for.continue:
+	addi $t0,$t0,1			#i++
+	addi $s0, $s0, 4		#a[i++]
+	slt $t2,$t0,$s1  		#if i < n
+	beq $t2, 1, _FindMax.for 	#if yes then for
+
+	move $v1, $s2
+
+	j _FindMax.return
+
+_FindMax.return:
+##Procerduce footer------------------------------------------------
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $s2,12($sp)
+	lw $t0,16($sp)
+	lw $t1,20($sp)
+	lw $t2,24($sp)
+
+	#Xoa stack
+	addi $sp,$sp,28
+
+	#Nhay ve dia chi goi ham
 	jr $ra
+	
+##------------------------------------------End of procerduce footer
+
+##Use selection sort algorithm to sort content of array a which has n elements
+##Params:
+##	$a0: a
+##	$a1: n
+##Return:
+##	none
+##Registers used:
+##	$s0:	save a0
+##	$s1:	save a1
+##	$s2:	min 
+##	$s3:	temp pointer
+##	$s4:	save n-1
+##	$t0:	i 
+##	$t1:	a[i]
+##	$t2: 	j
+##	$t3:	a[j]
+##	$t4:	compare value
+##	$t5:	temp		
+ _selectionSort:
+##Procerduce header----------------------------------------------------------
+	addi $sp,$sp,-48
+	
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $s2,12($sp)
+	sw $s3,16($sp)
+	sw $s4,20($sp)
+	sw $t0,24($sp)
+	sw $t1,28($sp)
+	sw $t2,32($sp)
+	sw $t3,36($sp)
+	sw $t4,40($sp)
+##-----------------------------------------------------End of procerduce header
+
+
+	move $s0,$a0	
+	move $s1,$a1
+	move $t0,$zero			#i=0
+	addi $s4,$s1,-1			#n-1
+_selectionSort.for:
+	lw $t1, ($s0) 			#a[i]
+	j _findMin			#jum to find min 
+_findMin:
+	
+	lw $s2, ($s0)			# min = a[i]
+	move $s3, $s0
+	move $t2, $t0			#j = i
+	
+_findMin.for:	        
+	lw $t3, ($s3)				#t1 = a[j]
+	slt $t4, $t3, $s2               	#if a[j]< min
+	beq $t4, 0,_findMin.for.continue        #if a[j]> min
+
+	move $s2, $t3				#min = a[j]
+_findMin.for.continue:
+	addi $t2,$t2,1			#i++
+	addi $s3, $s3, 4		#a[i++]
+	slt $t4,$t2,$s1  		#if i < n
+	beq $t4, 1, _findMin.for 	#if yes then for
+	
+	#swap a[j] and min
+	move $t5,$t1			
+	move $t1,$s2
+	move $s2,$t5
+	
+	j _selectionSort.for.continue
+
+_selectionSort.for.continue:
+	addi $t0,$t0,1			#j++
+	addi $s0,$s0,4			#a[j]=a[j++]
+	
+	slt $t4,$t0,$s4			#if j < n-1
+	beq $t4,1,_selectionSort.for 	# if yes then for
+
+	j _selectionSort.return
+
+
+##Procerduce footer------------------------------------------------
+_selectionSort.return:
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $s2,12($sp)
+	lw $s3,16($sp)
+	lw $s4,20($sp)
+	lw $t0,24($sp)
+	lw $t1,28($sp)
+	lw $t2,32($sp)
+	lw $t3,36($sp)
+	lw $t4,40($sp)
+
+	#Xoa stack
+	addi $sp,$sp,48
+
+	#Nhay ve dia chi goi ham
+	jr $ra
+	
+##------------------------------------------End of procerduce footer
+
