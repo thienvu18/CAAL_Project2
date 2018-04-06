@@ -6,7 +6,7 @@
 	array: 		.word 1,9,5,3
 	n: 		.word 4
         
-        	tb1:  .asciiz  "Nhap n: "
+        tb1:  .asciiz  "Nhap n: "
 	tb2:  .asciiz  "a[ "
 	tb3:  .asciiz  " ] = "
 	output:  .asciiz  "\nMang da nhap: "
@@ -347,138 +347,143 @@ L4:
 # $t1 chi so phan tu mang
 # $a1 dia chi cac phan tu mang
 # $s0 thanh ghi luu cac phan tu mang
+#Phan Header
 _ReadArray:
+	#Khai báo kich thuoc stack
+	addi $sp, $sp, -16
+	#Backup thanh ghi
+	sw $ra,($sp)
+	sw $t0, 4($sp)
+	sw $s0, 8($sp)
+	sw $t1, 12($sp)
 
+#Phan Than
 _ReadArray.TaoVongLap:
-	li $t0, 0   # i = 0
-	la $s0, arr #load dia chi mang vao s0
-	#Xuat tb1
+	li $t0, 0  		 # i = 0
+	la $s0, arr		 #load dia chi mang vao s0
 
-_ReadArray.XuatTB1:
+_ReadArray.XuatTB1:		#Xuat tb1
 	li $v0,4
 	la $a0,tb1
 	syscall
 _ReadArray.Nhapn:
-	#Nhap n
-	li $v0,5
+	li $v0,5		#Nhap n
 	syscall
-
-	#Luu vao n
-	sw $v0,n
-
-	#Truyen tham so
-	lw $s1,n
 	
-	#Xuat tb2
-_ReadArray.XuatTB2:
+	sw $v0,n		#Luu vao n
+	lw $s1,n		#Truyen tham so
+	
+	
+_ReadArray.XuatTB2:		#Xuat tb2
 	li $v0,4
 	la $a0,tb2
 	syscall
 
-	#xuat chi so i
-_ReadArray.Xuati:
+_ReadArray.Xuati:		#xuat chi so i
 	li $v0,1
 	move $a0,$t0
 	syscall
 
-	#Xuat tb3
-_ReadArray.XuatTB3:
+_ReadArray.XuatTB3:		#Xuat tb3
 	li $v0,4
 	la $a0,tb3
 	syscall
 
-	#Nhap so nguyen
-_ReadArray.Nhapmang:
+	
+_ReadArray.Nhapmang:		#Nhap so nguyen
 	li $v0,5
 	syscall
-
-	#Luu vao a[i] ($s0)
-	sw $v0,($s0)
-	
-	#Tang dia chi mang
-	addi $s0 , $s0 , 4
-
-	#Tang chi so i
-	addi $t0,$t0,1
+	sw $v0,($s0)		#Luu vao a[i] ($s0)
+	addi $s0 , $s0 , 4	#Tang dia chi mang
+	addi $t0,$t0,1		#Tang chi so i
 _ReadArray.KiemTra:	
 	slt $t1 , $t0, $s1
 	beq $t1 , 1 , _ReadArray.XuatTB2
-#Xuat thong bao tong cac so chinh phuong
-__SumSquareNums.XuatKQTongCP:
+	j _ReadArray.Ketthuc
+
+#Phan ket thuc
+_ReadArray.Ketthuc:
+	lw $ra,($sp)
+	lw $t0, 4($sp)
+	lw $s0, 8($sp)
+	lw $t1, 12($sp)
+
+	addi $sp, $sp, 20
+	#Nhay ve dia chi ham $ra
+	jr $ra
+
+##Tong cac so chinh phuong trong mang
+#Phan Header
+_SumSquareNums:
+	#size of stack
+	addi $sp,$sp,-36
+	#backup thanh ghi
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $s2,12($sp)
+	sw $t0,16($sp)
+	sw $t1,20($sp)
+	sw $t2,24($sp)
+	sw $t3,28($sp)
+	sw $t4,32($sp)
+
+        move $s0, $a0
+        move $s1, $a1
+
+#Phan Than
+_SumSquareNums.XuatTB:
 	li $v0,4
 	la $a0,tb4
 	syscall
-	j __SumSquareNums.TongSoChinhPhuong
-	move $s2, $v0
-#xuat $s2
-	li $v0,1
-	move $a0,$s2
-	syscall
 
-__SumSquareNums.TongSoChinhPhuong:
-#Phan dau ham
 	
-	#khai bao kich thuoc stack
-	addi $sp,$sp,-36
-	#backup cac thanh ghi
-	sw $ra,($sp)
-	sw $t0,4($sp)
-	sw $s0,8($sp)
-	sw $t1,12($sp)
-	sw $s1,16($sp)
-	sw $t2,20($sp) 
-	sw $t3,24($sp)
-	sw $t4,28($sp)
-	sw $t5,32($sp)
-	li   $t3, 0		#j=0
-	addi $t3, $t3, 1	#j=1
-	lw $t1,($s0)
-#Phan than
-__SumSquareNums.Lap:
-	#Lay gia tri a[i] vao $t1
+	li $t0, 0			#Khoi tao i = 0
+	li $s2, 0			#Khoi tao s = 0
+
+_SumSquareNums.LapI:
+	li $t1, 1			#Khoi tao j = 1
+	lw $t2, ($s0)			#$t2 = a[i]
 	
-	#Tinh tich t0*t0
-	mult $t3, $t3
+_SumSquareNums.LapJ:
+	mult $t1, $t1			# j*j
+	mflo $t3			# j*j
+	beq $t3, $t2, _SumSquareNums.TangTong		# Neu (j*j == a[i], toi ham TangTong
+	addi $t1, $t1, 1		# j++
+
+	slt $t4, $t2, $t3		#Kiem tra j <= a[i]
+	beq $t4, $0, _SumSquareNums.LapJ
+_SumSquareNums.TangI:
+	addi $t0, $t0, 1
+	addi $s0, $s0, 4
+
+	slt $t4, $t0, $s1		#Kiem tra i < n
+	bne $t4, $0,_SumSquareNums.LapI
+	j ketThuc
+
+_SumSquareNums.TangTong:
+	add $s2, $s2, $t2
+	j _SumSquareNums.TangI
+#Phan ket thuc
+_KetThuc:
 	
-	mtlo $t4
-
-	beq $t4,$t1, _SumSquareNums.CongVaoTong
-#	j _SumSquareNums.Tangj
-
-_SumSquareNums.Tangj:
-	addi $t3, $t3, 1
-	#Kiem tra i <= n (n < i ?)
-#	slt $t2,$t0,$t1			#so sanh t0 < t1 tuc la i voi a[i]
-	slt $t2, $t3, $t1		#so sanh t3 < t1 tuc la j voi a[i]
-
-	beq $t2,1, _SumSquareNums.Lap		#so sanh t3 va 0 roi chay ham
-	beq $t2,0, _SumSquareNums.Tangi
-
-_SumSquareNums.Tangi:
-	addi $t0, $t0, 1		#tang i lï¿½n
-	lw $t1,($s0)
-	slt $t5, $t0, $s1
-	beq $t5,1 , _SumSquareNums.Lap
-	#luu ket qua tra ve cua ham
-	j _SumSquareNums.KetThuc
-
-_SumSquareNums.CongVaoTong:
-	add $v0,$v0,$t1		# cong v0=v0 + t1 la tong so chinh phuong
-	#Lay ket qua tra ve luu vao $s1
-#cuoi thu tuc
-_SumSquareNums.KetThuc:
-	#restore cac thanh ghi
+	move $v0, $s2			#luu $s2 vao $v0
+	#restore thanh ghi
 	lw $ra,($sp)
-	lw $t0,4($sp)
-	lw $s0,8($sp)
-	lw $t1,12($sp)
-	lw $s1,16($sp)
-	lw $t2,20($sp)
-	lw $t3,20($sp)
-	lw $t4,28($sp)
-	lw $t5,32($sp)
-	#xoa stack
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $s2,12($sp)
+	lw $t0,16($sp)
+	lw $t1,20($sp)
+	lw $t2,24($sp)
+	lw $t3,28($sp)
+	lw $t4,32($sp)
+
+	#Xoa stack
 	addi $sp,$sp,36
+
+	#Tra ve dia chi $ra
+	jr $ra
 
 ## Find Max 
 ##Params:
