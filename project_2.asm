@@ -20,7 +20,7 @@ main.menu:
 	la $a0, choose_msg
 	syscall
 	
-	#Read user's choen
+	#Read user's chosen
 	li $v0, 5
 	syscall
 	sw $v0, chosen			#Save user's chosen to ram
