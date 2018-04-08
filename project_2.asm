@@ -3,16 +3,21 @@
 	choose_msg:	.asciiz	"Nhap so ban chon: "
 	pause_msg:	.asciiz	"Nhan enter de tiep tuc."
 	chosen:		.word	1
-	array: 		.word 1,9,5,3
-	n: 		.word 4
-        
-        tb1:  .asciiz  "Nhap n: "
-	tb2:  .asciiz  "a[ "
-	tb3:  .asciiz  " ] = "
-	output:  .asciiz  "\nMang da nhap: "
-	arr:  .word  0:100   # int array[100]
-
-	tb4: .asciiz "Tong cac so chinh phuong trong mang: "
+	array	: 	.word 	0:100
+	n: 		.word 	4  
+        tb1:  		.asciiz "Nhap n: "
+	tb2:  		.asciiz "a["
+	tb3:  		.asciiz "]: "
+	output:  	.asciiz "\nMang da nhap: "
+	tb4: 		.asciiz "Tong cac so chinh phuong trong mang: "
+	prime:		.asciiz "Cac so nguyen to la:\n"
+	primefalse:	.asciiz "Khong co so nguyen to trong mang!!!\n"
+	prime1:		.asciiz "A["
+	prime2:		.asciiz "]="
+	perfect:	.asciiz "Cac so hoan thien la:\n"
+	perfectfalse:	.asciiz "Khong co so hoan thien trong mang!!!\n"
+	line:		.asciiz "\n"
+	avgPalin:	.asciiz	"Trung binh cac so doi xung la: "
 
 .text
 	.globl main
@@ -73,9 +78,19 @@ main.exe_PrintArray:
 	#Pause program
 	j main.pause
 main.exe_ListPrimes:
+	#Call ListPrimes
+	la $a0, array			#Load array address to a0
+	lw $a1, n			#Load number lenght of array to a1
+	jal _ListPrimes			#Call
+	
 	#Pause program
 	j main.pause
 main.exe_ListPerfects:
+	#Call ListPerfect
+	la $a0, array			#Load array address to a0
+	lw $a1, n			#Load number lenght of array to a1
+	jal _ListPerfects		#Call
+	
 	#Pause program
 	j main.pause
 main.exe_SumSquareNums:
@@ -89,6 +104,16 @@ main.exe_AveragePalindromes:
 	la $a0, array			#Load array address to a0
 	lw $a1, n			#Load number lenght of array to a1
         jal _AveragePalindromes
+        
+        move $t0, $v0
+        
+        li $v0, 4
+	la $a0, avgPalin
+	syscall
+	
+	li $v0, 1
+	move $a0, $t0
+	syscall
         
 	#Pause program
 	j main.pause
@@ -214,6 +239,7 @@ _bubbleSort.return:
 	addi $sp, $sp, 32		#Restore stack pointer
 	jr $ra				#Return
 ##------------------------------------------End of procerduce footer
+
 _PrintArray:
 	#size of stack
 	addi $sp,$sp,-20
@@ -224,8 +250,8 @@ _PrintArray:
 	sw $t0,12($sp)
 	sw $t1,16($sp)
 
-	move $s0, $a0			#save address of arr to $s0
-	move $s1, $a1			#save size of arr to $s1	
+	move $s0, $a0			#save address of array to $s0
+	move $s1, $a1			#save size of array to $s1	
 	#innit i = 0
 	li $t0,0
 outputLoop:
@@ -238,7 +264,7 @@ outputLoop:
 	li $a0, 32 			#32 = space
 	syscall
 
-	addi $s0, $s0, 4		#increase address of arr
+	addi $s0, $s0, 4		#increase address of array
 	
 	addi $t0, $t0, 1		#i++
 
@@ -277,8 +303,8 @@ _AveragePalindromes:
 	sw $t6,48($sp)
 	sw $t7,52($sp)
 
-	move $s0, $a0			#save address of arr to $s0
-	move $s1, $a1			#save size of arr to $s1
+	move $s0, $a0			#save address of array to $s0
+	move $s1, $a1			#save size of array to $s1
 	
 	li $t0, 0			#init i = 0
 	li $t1, 0			#init amount of symmetric numbers k = 0
@@ -349,7 +375,7 @@ L4:
 # $s0 thanh ghi luu cac phan tu mang
 #Phan Header
 _ReadArray:
-	#Khai báo kich thuoc stack
+	#Khai bao kich thuoc stack
 	addi $sp, $sp, -16
 	#Backup thanh ghi
 	sw $ra,($sp)
@@ -360,7 +386,7 @@ _ReadArray:
 #Phan Than
 _ReadArray.TaoVongLap:
 	li $t0, 0  		 # i = 0
-	la $s0, arr		 #load dia chi mang vao s0
+	la $s0, array		 #load dia chi mang vao s0
 
 _ReadArray.XuatTB1:		#Xuat tb1
 	li $v0,4
@@ -459,13 +485,13 @@ _SumSquareNums.TangI:
 
 	slt $t4, $t0, $s1		#Kiem tra i < n
 	bne $t4, $0,_SumSquareNums.LapI
-	j ketThuc
+	j _SumSquareNums.KetThuc
 
 _SumSquareNums.TangTong:
 	add $s2, $s2, $t2
 	j _SumSquareNums.TangI
 #Phan ket thuc
-_KetThuc:
+_SumSquareNums.KetThuc:
 	
 	move $v0, $s2			#luu $s2 vao $v0
 	#restore thanh ghi
@@ -650,3 +676,298 @@ _selectionSort.return:
 	
 ##------------------------------------------End of procerduce footer
 
+_ListPrimes:
+##Procerduce header----------------------------------------------------------
+	addi $sp, $sp, -32		#Create stack frame, framesize = 32
+	sw $ra,($sp)			#Preserve return address
+	sw $fp,4($sp)			#Preserve frame pointer
+	sw $s0,8($sp)			#Preserve s0
+	sw $s1,12($sp)			#Preserve s1
+	sw $t0,16($sp)			#Preserve t0
+	sw $t1,20($sp)			#Preserve t1
+	sw $t2,24($sp)			#Preserve t2
+	sw $t3,28($sp)			#Preserve t3
+	addi $fp, $sp, 32		#Move frame pointer to base of frame
+	
+	move $s0, $a0			#Get a0 from caller, $s0=array
+	move $s1, $a1			#Get a1 from caller, $s1=n
+##---------------------------------------------------End of procerduce header
+	addi $t0,$zero,0		#$t0=0
+	addi $t3,$zero,0		#$t3=0
+	li $v0,4
+	la $a0,prime			#print("cac so nguyen to")
+	syscall
+	
+	j _CheckListPrimes		#call _CheckListPrimes
+	
+
+##CheckPrime----------------------------------------------------------------
+#$a0: A[i]
+#return 1 or 0 in $v0
+_CheckPrime:
+##Procerduce header----------------------------------------------------------
+	addi $sp, $sp, -24		#Create stack frame, framesize = 24
+	sw $ra,($sp)			#Preserve return address
+	sw $fp,4($sp)			#Preserve frame pointer
+	sw $t5,8($sp)			#Preserve t5
+	sw $t6,12($sp)			#Preserve t6
+	sw $t7,16($sp)			#Preserve t7
+	
+	addi $fp, $sp, 24		#Move frame pointer to base of frame
+##---------------------------------------------------End of procerduce header
+	sgtu $t5,$a0,1 				#compare $a0 > 1
+	addi $v0,$zero,0			#$v0=0
+	beq $t5,1,_Prime.Return1		#if $a0>1 return $v0=1
+	
+_Checkcontinue:
+	beq $t5,0,_CheckPrime.return		#if $a0<=1 return 0
+	beq $a0,2,_CheckPrime.return		#if $a0=2 return $v0=1
+		
+#$t5: i=2
+addi $t5,$zero,2 			#$t5=i=2
+addi $v0,$zero,0			#$v0=0
+_CheckPrime.Loop:
+	div $a0,$t5			#divide $a0 by $t5
+	mfhi $t6			
+	beq $t6,0,_CheckPrime.return 	#if $t6=0 return false
+	addi $t5,$t5,1			#$t5=i++
+	slt $t7,$t5,$a0			#compare $t5 < $a0 
+	beq $t7,1,_CheckPrime.Loop	#if $t5 < $a0 for
+	addi $v0,$zero,1		
+	j _CheckPrime.return
+	
+_CheckPrime.return:
+	#lw $fp, 4($sp)			#Restore frame pointer
+	lw $ra,($sp)			#Restore return address
+	lw $fp,4($sp)			#Restore frame pointer
+	lw $t7,8($sp)			#Restore t7
+	lw $t6,12($sp)			#Restore t6
+	lw $t5,16($sp)			#Restore t5
+	addi $sp, $sp, 24		#Restore stack pointer
+	jr $ra				#Return
+	
+_Prime.Return1:
+	addi $v0,$zero,1		#$v0=1
+	j _Checkcontinue	
+##-------------------------------------------------------EndCheckPrime		
+#$s0 array
+#$s1 n
+#$t0: i=0
+_CheckListPrimes:
+	lw $a0,($s0)			
+	jal _CheckPrime
+	move $t2,$v0			#take results
+	beq $t2,1,_CheckPrime.True	#print true
+	beq $t2,0,_CheckPrime.Add
+	
+_CheckPrime.True:
+	addi $t3,$zero,1		#$t3=1
+	li $v0,4
+	la $a0,prime1			#print("A[")
+	syscall
+
+	li $v0,1
+	move $a0,$t0			#print(i)
+	syscall
+
+	li $v0,4
+	la $a0,prime2			#print("]=")
+	syscall
+	
+	li $v0,1
+	lw $a0,($s0)			#print(A[i])
+	syscall
+	
+	li $v0,4
+	la $a0,line			#print("\n")
+	syscall
+	
+	j _CheckPrime.Add
+	
+_CheckPrime.Add:
+	addi $s0,$s0,4			#a[i]++
+	
+	addi $t0,$t0,1			#i++
+
+	slt $t1,$t0,$s1			#compare $t0 < $s1 
+	beq $t1,1,_CheckListPrimes	#if $t0 < $s1 for 
+	beq $t3,0,_CheckPrimeFalse
+	beq $t3,1,_CheckPrimeend
+_CheckPrimeFalse:
+	li $v0,4
+	la $a0,primefalse		#print("khong co so nguyen to")
+	syscall
+
+_CheckPrimeend:
+	j _CheckListPrimes.return
+	
+
+
+_CheckListPrimes.return:
+	lw $ra, ($sp)			#Restore return address
+	lw $fp, 4($sp)			#Restore frame pointer
+	lw $t3, 8($sp)
+	lw $t2, 12($sp)			#Restore t2
+	lw $t1, 16($sp)			#Restore t1
+	lw $t0, 20($sp)			#Restore t0
+	lw $s1, 24($sp)			#Restore s1
+	lw $s2, 28($sp)			#restore s2
+	addi $sp, $sp, 32		#Restore stack pointer
+	jr $ra				#Return
+
+	
+		
+			
+_ListPerfects:
+##Procerduce header----------------------------------------------------------
+	addi $sp, $sp, -32		#Create stack frame, framesize = 32
+	sw $ra,($sp)			#Preserve return address
+	sw $fp,4($sp)			#Preserve frame pointer
+	sw $s0,8($sp)			#Preserve s0
+	sw $s1,12($sp)			#Preserve s1
+	sw $t0,16($sp)			#Preserve t0
+	sw $t1,20($sp)			#Preserve t1
+	sw $t2,24($sp)			#Preserve t2
+	sw $t3,28($sp)			#Preserve t3
+	addi $fp, $sp, 32		#Move frame pointer to base of frame
+	
+	move $s0, $a0			#Get a0 from caller, $s0=array
+	move $s1, $a1			#Get a1 from caller, $s1=n
+##---------------------------------------------------End of procerduce header
+	addi $t0,$zero,0			#$t0=0
+	addi $t3,$zero,0			#$t3=0
+	
+	li $v0,4
+	la $a0,perfect			#print("cac so hoan hao")
+	syscall
+	j _CheckListPerfects			#call _CheckListPrimes
+	
+
+##CheckPerfect----------------------------------------------------------------
+#$a0: A[i]
+#return 1 or 0 in $v0
+_CheckPerfect:
+##Procerduce header----------------------------------------------------------
+	addi $sp, $sp, -24		#Create stack frame, framesize = 24
+	sw $ra,($sp)			#Preserve return address
+	sw $fp,4($sp)			#Preserve frame pointer
+	sw $t5,8($sp)			#Preserve t5
+	sw $t6,12($sp)			#Preserve t6
+	sw $t7,16($sp)			#Preserve t7
+	sw $t8,20($sp)			#Preserve t8	
+	addi $fp, $sp, 24		#Move frame pointer to base of frame
+##---------------------------------------------------End of procerduce header
+
+	sgtu $t5,$a0,5				#compare $a0 > 5
+	addi $v0,$zero,0			#$v0=0
+	beq $t5,1,_Perfect.Return1		#if $a0>5 return $v0=1	
+	
+_Perfectcontinue:
+	beq $t5,0,_CheckPerfect.return		#if $a0<=5 return 0
+
+#$t5: i=1
+addi $t5,$zero,1			#$t5=i=1
+addi $t6,$zero,0			#$t6=0: total
+addi $v0,$zero,0			#$v0=0
+_CheckPerfect.Loop:
+	div $a0,$t5			#divide $a0 by $t5
+	mfhi $t7			
+	beq $t7,0,_Perfect.add		#if $t7=0 return $t6=$t6+$t5
+
+_Loop.continue:
+	addi $t5,$t5,1			#$t5=i++
+	slt $t8,$t5,$a0			#compare $t5 < $a0 
+	beq $t8,1,_CheckPerfect.Loop	#if $t5 < $a0 for
+	addi $t8,$zero,0		#$t8=0
+	sub $t8,$a0,$t6			#$t8=$a0-$t6
+	addi $v0,$zero,1
+	beq $t8,0,_CheckPerfect.return	#return true
+	addi $v0,$zero,0		#$v0=0
+	j _CheckPerfect.return		#return false
+
+_CheckPerfect.return:
+	#lw $fp, 4($sp)			#Restore frame pointer
+	lw $ra,($sp)			#Restore return address
+	lw $fp,4($sp)			#Restore frame pointer
+	lw $t8,8($sp)			#Restore t8
+	lw $t7,12($sp)			#Restore t7
+	lw $t6,16($sp)			#Restore t6
+	lw $t5,20($sp)			#Restore t5
+	addi $sp, $sp, 24		#Restore stack pointer
+	jr $ra				#Return
+	
+_Perfect.Return1:
+	addi $v0,$zero,1		#$v0=1
+	j _Perfectcontinue
+_Perfect.add:
+	add $t6,$t6,$t5		#$t6+=$t5
+	j _Loop.continue
+
+##-------------------------------------------------------EndCheckPrime	
+	
+#$s0 array
+#$s1 n
+#$t0: i=0
+_CheckListPerfects:
+	lw $a0,($s0)			
+	jal _CheckPerfect
+	move $t2,$v0			#take results
+	beq $t2,1,_CheckPerfect.True	#print true
+	beq $t2,0,_CheckPerfect.Add
+	
+_CheckPerfect.True:
+	addi $t3,$zero,1
+	li $v0,4
+	la $a0,prime1			#print("A[")
+	syscall
+
+	li $v0,1
+	move $a0,$t0			#print(i)
+	syscall
+
+	li $v0,4
+	la $a0,prime2			#print("]=")
+	syscall
+	
+	li $v0,1
+	lw $a0,($s0)			#print(A[i])
+	syscall
+	
+	li $v0,4
+	la $a0,line			#print("\n")
+	syscall
+	
+	move $t2,$v0			#take results
+	j _CheckPerfect.Add
+	
+_CheckPerfect.Add:
+	addi $s0,$s0,4			#a[i]++
+	
+	addi $t0,$t0,1			#i++
+
+	slt $t1,$t0,$s1			#compare $t0 < $s1 
+	beq $t1,1,_CheckListPerfects	#if $t0 < $s1 for 
+	beq $t3,0,_CheckPerfectFalse
+	beq $t3,1,_CheckPerfectend
+_CheckPerfectFalse:
+	li $v0,4
+	la $a0,perfectfalse			#print("khong co so hoan hao")
+	syscall
+	
+_CheckPerfectend:
+	j _CheckListPerfects.return
+	
+
+
+_CheckListPerfects.return:
+	lw $ra, ($sp)			#Restore return address
+	lw $fp, 4($sp)			#Restore frame pointer
+	lw $t2, 8($sp)			#Restore t2
+	lw $t1, 12($sp)			#Restore t1
+	lw $t0, 16($sp)			#Restore t0
+	lw $s1, 20($sp)			#Restore s1
+	lw $s2, 24($sp)			#restore s2
+	addi $sp, $sp, 32		#Restore stack pointer
+	jr $ra				#Return	
+
+##------------------------------------------End of procerduce footer
