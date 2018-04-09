@@ -579,7 +579,7 @@ _FindMax.for.continue:
 	addi $t0,$t0,1			#i++
 	
 	addi $s0, $s0, 4		#a[i++]
-	slt $t2,$t0,$s1  		#if i < n-1
+	slt $t2,$t0,$s1  		#if i < n
 	beq $t2, 1, _FindMax.for 	#if yes then for
 
 	move $v1, $s2
@@ -648,7 +648,7 @@ _selectionSort.for:
 	
 	
 	add $a0, $s0, 4			#a[i+1]
-	sub $a1, $s1,$t0		#n-i
+	sub $a1, $s2,$t0		#n-i
 	jal _FindMax			#jum to find max
 	
 	add $t2, $v0, 1
