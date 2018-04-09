@@ -1,15 +1,18 @@
 .data
 	menu:		.asciiz	"============= Menu ============\n1. Nhap mang\n2. Xuat mang\n3. Liet ke so nguyen to trong mang\n4. Liet ke so hoan thien trong mang\n5. Tinh tong cac so chinh phuong trong mang\n6. Tinh trung binh cong cac so doi xung trong mang\n7. Tim gia tri lon nhat trong mang\n8. Sap xep mang tang dan theo Selection sort\n9. Sap xep mang giam dan theo Bubble sort\n10. Thoat\n================================\n"
 	choose_msg:	.asciiz	"Nhap so ban chon: "
-	pause_msg:	.asciiz	"Nhan enter de tiep tuc."
+	pause_msg:	.asciiz	"\nNhan enter de tiep tuc."
 	chosen:		.word	1
 	array	: 	.word 	0:100
-	n: 		.word 	4  
-        tb1:  		.asciiz "Nhap n: "
-	tb2:  		.asciiz "a["
-	tb3:  		.asciiz "]: "
-	output:  	.asciiz "\nMang da nhap: "
-	tb4: 		.asciiz "Tong cac so chinh phuong trong mang: "
+	n: 		.word 	4
+        
+	ReadMessage1:  .asciiz  "Nhap n: "
+	ReadMessage2:  .asciiz  "a[ "
+	ReadMessage3:  .asciiz  " ] = "
+
+        SumSquareNumsMessage1: .asciiz "Tong cac so chinh phuong trong mang: "
+	SumSquareNumsMessage2: .asciiz "Khong co so chinh phuong trong mang! "
+
 	prime:		.asciiz "Cac so nguyen to la:\n"
 	primefalse:	.asciiz "Khong co so nguyen to trong mang!!!\n"
 	prime1:		.asciiz "A["
@@ -375,7 +378,7 @@ L4:
 # $s0 thanh ghi luu cac phan tu mang
 #Phan Header
 _ReadArray:
-	#Khai bao kich thuoc stack
+	#Khai báo kich thuoc stack
 	addi $sp, $sp, -16
 	#Backup thanh ghi
 	sw $ra,($sp)
@@ -388,9 +391,9 @@ _ReadArray.TaoVongLap:
 	li $t0, 0  		 # i = 0
 	la $s0, array		 #load dia chi mang vao s0
 
-_ReadArray.XuatTB1:		#Xuat tb1
+_ReadArray.XuatReadMessage1:		#Xuat tb1
 	li $v0,4
-	la $a0,tb1
+	la $a0,ReadMessage1
 	syscall
 _ReadArray.Nhapn:
 	li $v0,5		#Nhap n
@@ -400,9 +403,9 @@ _ReadArray.Nhapn:
 	lw $s1,n		#Truyen tham so
 	
 	
-_ReadArray.XuatTB2:		#Xuat tb2
+_ReadArray.ReadMessage2:		#Xuat tb2
 	li $v0,4
-	la $a0,tb2
+	la $a0,ReadMessage2
 	syscall
 
 _ReadArray.Xuati:		#xuat chi so i
@@ -410,9 +413,9 @@ _ReadArray.Xuati:		#xuat chi so i
 	move $a0,$t0
 	syscall
 
-_ReadArray.XuatTB3:		#Xuat tb3
+_ReadArray.ReadMessage3:		#Xuat tb3
 	li $v0,4
-	la $a0,tb3
+	la $a0,ReadMessage3
 	syscall
 
 	
@@ -424,7 +427,7 @@ _ReadArray.Nhapmang:		#Nhap so nguyen
 	addi $t0,$t0,1		#Tang chi so i
 _ReadArray.KiemTra:	
 	slt $t1 , $t0, $s1
-	beq $t1 , 1 , _ReadArray.XuatTB2
+	beq $t1 , 1 , _ReadArray.ReadMessage2
 	j _ReadArray.Ketthuc
 
 #Phan ket thuc
@@ -442,7 +445,7 @@ _ReadArray.Ketthuc:
 #Phan Header
 _SumSquareNums:
 	#size of stack
-	addi $sp,$sp,-36
+	addi $sp,$sp,-40
 	#backup thanh ghi
 	sw $ra,($sp)
 	sw $s0,4($sp)
@@ -453,15 +456,12 @@ _SumSquareNums:
 	sw $t2,24($sp)
 	sw $t3,28($sp)
 	sw $t4,32($sp)
+	sw $t5,36($sp)
 
         move $s0, $a0
-        move $s1, $a1
-
+	move $s1, $a1
 #Phan Than
 _SumSquareNums.XuatTB:
-	li $v0,4
-	la $a0,tb4
-	syscall
 
 	
 	li $t0, 0			#Khoi tao i = 0
@@ -485,14 +485,32 @@ _SumSquareNums.TangI:
 
 	slt $t4, $t0, $s1		#Kiem tra i < n
 	bne $t4, $0,_SumSquareNums.LapI
-	j _SumSquareNums.KetThuc
+	j _KetThuc
 
 _SumSquareNums.TangTong:
 	add $s2, $s2, $t2
 	j _SumSquareNums.TangI
+
 #Phan ket thuc
-_SumSquareNums.KetThuc:
-	
+_KetThuc:
+	#Kiem tra mang co ton tai so chinh phuong khong
+	beq $s2, $0, _SumSquareNumsMessage2
+_SumSquareNumsMessage1:
+	#xuat $s2
+	li $v0,4
+	la $a0,SumSquareNumsMessage1
+	syscall
+
+	li $v0,1
+	move $a0,$s2
+	syscall
+	j _SumSquareNumsL1
+_SumSquareNumsMessage2:
+	li $v0,4
+	la $a0,SumSquareNumsMessage2
+	syscall
+
+_SumSquareNumsL1:
 	move $v0, $s2			#luu $s2 vao $v0
 	#restore thanh ghi
 	lw $ra,($sp)
@@ -504,9 +522,10 @@ _SumSquareNums.KetThuc:
 	lw $t2,24($sp)
 	lw $t3,28($sp)
 	lw $t4,32($sp)
+	lw $t5,36($sp)
 
 	#Xoa stack
-	addi $sp,$sp,36
+	addi $sp,$sp,40
 
 	#Tra ve dia chi $ra
 	jr $ra
