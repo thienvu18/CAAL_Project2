@@ -388,12 +388,13 @@ L4:
 #Phan Header
 _ReadArray:
 	#Khai báo kich thuoc stack
-	addi $sp, $sp, -16
+	addi $sp, $sp, -20
 	#Backup thanh ghi
 	sw $ra,($sp)
-	sw $t0, 4($sp)
-	sw $s0, 8($sp)
-	sw $t1, 12($sp)
+	sw $t0,4($sp)
+	sw $s0,8($sp)
+	sw $t1,12($sp)
+        sw $t2,16($sp)
 
 #Phan Than
 _ReadArray.TaoVongLap:
@@ -410,7 +411,8 @@ _ReadArray.Nhapn:
 	
 	sw $v0,n		#Luu vao n
 	lw $s1,n		#Truyen tham so
-	
+	slti $t2, $s1, 1			
+	beq $t2, 1, _ReadArray.XuatReadMessage1
 	
 _ReadArray.ReadMessage2:		#Xuat tb2
 	li $v0,4
@@ -442,9 +444,10 @@ _ReadArray.KiemTra:
 #Phan ket thuc
 _ReadArray.Ketthuc:
 	lw $ra,($sp)
-	lw $t0, 4($sp)
-	lw $s0, 8($sp)
-	lw $t1, 12($sp)
+	lw $t0,4($sp)
+	lw $s0,8($sp)
+	lw $t1,12($sp)
+        lw $t2,16($sp)
 
 	addi $sp, $sp, 20
 	#Nhay ve dia chi ham $ra
