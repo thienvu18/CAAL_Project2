@@ -4,8 +4,7 @@
 	pause_msg:	.asciiz	"\nNhan enter de tiep tuc."
 	chosen:		.word	1
 	array	: 	.word 	0:100
-<<<<<<< HEAD
-	n: 		.word 	4
+	n: 		.word 	100
         
 	ReadMessage1:  .asciiz  "Nhap n: "
 	ReadMessage2:  .asciiz  "a[ "
@@ -13,15 +12,8 @@
 
         SumSquareNumsMessage1: .asciiz "Tong cac so chinh phuong trong mang: "
 	SumSquareNumsMessage2: .asciiz "Khong co so chinh phuong trong mang! "
-
-=======
-	n: 		.word 	101  
-        tb1:  		.asciiz "Nhap n: "
-	tb2:  		.asciiz "a["
-	tb3:  		.asciiz "]: "
 	output:  	.asciiz "\nMang da nhap: "
 	tb4: 		.asciiz "Tong cac so chinh phuong trong mang: "
->>>>>>> e4eb340a8de4bc34b687d7385089ca50bf57c01d
 	prime:		.asciiz "Cac so nguyen to la:\n"
 	primefalse:	.asciiz "Khong co so nguyen to trong mang!!!\n"
 	prime1:		.asciiz "A["
@@ -135,10 +127,6 @@ main.exe_FindMax:
 	jal _FindMax			#Call
 	
 	move $t0,$v1
-
-	li $v0, 4
-	la $a0,tb1
-	syscall
 
 	li $v0, 1
 	move $a0, $t0
@@ -387,7 +375,7 @@ L4:
 # $s0 thanh ghi luu cac phan tu mang
 #Phan Header
 _ReadArray:
-	#Khai báo kich thuoc stack
+	#Khai bï¿½o kich thuoc stack
 	addi $sp, $sp, -20
 	#Backup thanh ghi
 	sw $ra,($sp)
