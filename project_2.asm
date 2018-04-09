@@ -310,42 +310,38 @@ _AveragePalindromes:
 	li $t1, 0			#init amount of symmetric numbers k = 0
 	li $s2, 0			#init result = 0
 
-LoopOfI:
+loop_i:
 	lw $t2, ($s0)			#$t2 = a[i]
-	slti $t3, $t2, 11 		#if a[i] > 10 go L0
-	beq $t3, $0, L0			
-					#else
-L2:
-	addi $t0, $t0, 1		#i++
-	addi $s0, $s0, 4		#increase address of a[i]
-	slt $t3, $t0, $s1 		#if i < n then goto LoopOfI
-	bne $t3, $0, LoopOfI		
-	j L3				#else goto L3
-L0:
+	slti $t3, $t2, 0 		#if a[i] < 0 then goto increase_i else goto checkSymmetry
+	bne $t3, $0, increase_i
 	li $s3, 0			#init s= 0
 	lw $s4, ($s0)			#init temp = a[i]
-LoopOfSeperate:
+checkSymmetry:
 	div $s4, $s4, 10		#temp /= 10
 	mflo $t4			#lo
 	mfhi $t5			#hi
 	li $t6, 10			#$t6 = 10
 	mult $s3, $t6			#s *= 10
-	mflo $t7			#result of s
+	mflo $t7			#s
 	move $s3, $t7			
 	add $s3, $s3, $t5		#s += hi
-	bne $t4, $0, LoopOfSeperate	#if lo != 0 goto LoopOfSeperate
-	beq $s3, $t2, L1
-	j L2
-L1:
-	add $s2, $s2, $t2		#s+=a[i]
+	bne $t4, $0, checkSymmetry	#if lo != 0 goto checkSymmetry
+	beq $s3, $t2, sum		#if a[i] is symmetry
+	j increase_i			#goto increase_i
+sum:
+	add $s2, $s2, $t2		#result+=a[i]
 	addi $t1, $t1, 1		#k++
-	j L2
-L3:
+increase_i:
+	addi $t0, $t0, 1		#i++
+	addi $s0, $s0, 4		#increase address of a[i]
+	slt $t3, $t0, $s1 		#if i < n then goto loop_i
+	bne $t3, $0, loop_i		#else exit
+printOutput:
 	#result
-	beq $s2, $0, L4
+	beq $s2, $0, end
 	div $s2, $t1
 	mflo $s2
-L4:
+end:
 	move $v0, $s2			#save $s2 to $v0
 	#restore registers
 	lw $ra,($sp)
