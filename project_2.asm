@@ -4,6 +4,7 @@
 	pause_msg:	.asciiz	"\nNhan enter de tiep tuc."
 	chosen:		.word	1
 	array	: 	.word 	0:100
+<<<<<<< HEAD
 	n: 		.word 	4
         
 	ReadMessage1:  .asciiz  "Nhap n: "
@@ -13,6 +14,14 @@
         SumSquareNumsMessage1: .asciiz "Tong cac so chinh phuong trong mang: "
 	SumSquareNumsMessage2: .asciiz "Khong co so chinh phuong trong mang! "
 
+=======
+	n: 		.word 	101  
+        tb1:  		.asciiz "Nhap n: "
+	tb2:  		.asciiz "a["
+	tb3:  		.asciiz "]: "
+	output:  	.asciiz "\nMang da nhap: "
+	tb4: 		.asciiz "Tong cac so chinh phuong trong mang: "
+>>>>>>> e4eb340a8de4bc34b687d7385089ca50bf57c01d
 	prime:		.asciiz "Cac so nguyen to la:\n"
 	primefalse:	.asciiz "Khong co so nguyen to trong mang!!!\n"
 	prime1:		.asciiz "A["
@@ -734,7 +743,7 @@ _CheckPrime:
 	
 	addi $fp, $sp, 24		#Move frame pointer to base of frame
 ##---------------------------------------------------End of procerduce header
-	sgtu $t5,$a0,1 				#compare $a0 > 1
+	sgt $t5,$a0,1 				#compare $a0 > 1
 	addi $v0,$zero,0			#$v0=0
 	beq $t5,1,_Prime.Return1		#if $a0>1 return $v0=1
 	
@@ -867,17 +876,19 @@ _ListPerfects:
 #return 1 or 0 in $v0
 _CheckPerfect:
 ##Procerduce header----------------------------------------------------------
-	addi $sp, $sp, -24		#Create stack frame, framesize = 24
+	addi $sp, $sp, -32		#Create stack frame, framesize = 24
 	sw $ra,($sp)			#Preserve return address
 	sw $fp,4($sp)			#Preserve frame pointer
-	sw $t5,8($sp)			#Preserve t5
-	sw $t6,12($sp)			#Preserve t6
-	sw $t7,16($sp)			#Preserve t7
-	sw $t8,20($sp)			#Preserve t8	
-	addi $fp, $sp, 24		#Move frame pointer to base of frame
+	sw $t4,8($sp)			#Preserve t4
+	sw $t5,12($sp)			#Preserve t5
+	sw $t6,16($sp)			#Preserve t6
+	sw $t7,20($sp)			#Preserve t7
+	sw $t8,24($sp)			#Preserve t8	
+	sw $t9,28($sp)			#Preserve t9	
+	addi $fp, $sp, 32		#Move frame pointer to base of frame
 ##---------------------------------------------------End of procerduce header
 
-	sgtu $t5,$a0,5				#compare $a0 > 5
+	sgt $t5,$a0,5				#compare $a0 > 5
 	addi $v0,$zero,0			#$v0=0
 	beq $t5,1,_Perfect.Return1		#if $a0>5 return $v0=1	
 	
@@ -895,24 +906,27 @@ _CheckPerfect.Loop:
 
 _Loop.continue:
 	addi $t5,$t5,1			#$t5=i++
-	slt $t8,$t5,$a0			#compare $t5 < $a0 
-	beq $t8,1,_CheckPerfect.Loop	#if $t5 < $a0 for
+	mul $t9,$t5,$t5			#$t9=$t5*$t5 
+	slt $t8,$t9,$a0			#compare $t9 < $a0 
+	beq $t8,1,_CheckPerfect.Loop	#if $t9 < $a0 for
 	addi $t8,$zero,0		#$t8=0
-	sub $t8,$a0,$t6			#$t8=$a0-$t6
+	sub $t8,$t6,$a0			#$t8=$t6,$a0
+	sub $t8,$t8,$a0			#$t8-=$t8
 	addi $v0,$zero,1
 	beq $t8,0,_CheckPerfect.return	#return true
 	addi $v0,$zero,0		#$v0=0
 	j _CheckPerfect.return		#return false
 
 _CheckPerfect.return:
-	#lw $fp, 4($sp)			#Restore frame pointer
 	lw $ra,($sp)			#Restore return address
 	lw $fp,4($sp)			#Restore frame pointer
-	lw $t8,8($sp)			#Restore t8
-	lw $t7,12($sp)			#Restore t7
-	lw $t6,16($sp)			#Restore t6
-	lw $t5,20($sp)			#Restore t5
-	addi $sp, $sp, 24		#Restore stack pointer
+	lw $t9,8($sp)			#Restore t9
+	lw $t8,12($sp)			#Restore t8
+	lw $t7,16($sp)			#Restore t7
+	lw $t6,20($sp)			#Restore t6
+	lw $t5,24($sp)			#Restore t5
+	lw $t4,28($sp)			#Restore t4
+	addi $sp, $sp, 32		#Restore stack pointer
 	jr $ra				#Return
 	
 _Perfect.Return1:
@@ -920,6 +934,9 @@ _Perfect.Return1:
 	j _Perfectcontinue
 _Perfect.add:
 	add $t6,$t6,$t5		#$t6+=$t5
+	div $a0,$t5		#$a0/$t5
+	mflo $t4		#$t4=$a0/$t5
+	add $t6,$t6,$t4		#$t6+=$t4
 	j _Loop.continue
 
 ##-------------------------------------------------------EndCheckPrime	
