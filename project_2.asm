@@ -48,7 +48,7 @@ main.menu:
 	
 #Execute the option that the user choose
 main.execute:
-	lw $t0, chosen				#Load user's choosen
+	lw $t0, chosen				#Load user's chosen
 	
 	slti $t1, $t0, 1			#if user choose a number that less than 1
 	beq $t1, 1, main.menu			#then show the menu and ask user to choose again
@@ -602,6 +602,82 @@ _FindMax.return:
 	
 ##------------------------------------------End of procerduce footer
 
+## Find min element and its index
+##Params:
+##	$a0: a
+##	$a1: n
+##Return:
+##	$v0	:min index
+##	$v1	:min
+##Registers used:
+##	$s0:	save a0
+##	$s1:	save a1
+##	$s2:	max
+##	$t0:	i 
+##	$t1:	a[i]
+##	$t2:	compare value
+##	$t3	max index
+##	$t4	n-1
+
+_FindMin:
+##Procerduce header----------------------------------------------------------
+	addi $sp,$sp,-36
+	
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s1,8($sp)
+	sw $s2,12($sp)
+	sw $t0,16($sp)
+	sw $t1,20($sp)
+	sw $t2,24($sp)
+	sw $t3,28($sp)
+	sw $t4,32($sp)
+##-----------------------------------------------------End of procerduce header
+	move $s0,$a0
+	move $s1,$a1
+	lw $s2, ($s0)			# mmin = a[i]
+	move $t0, $zero			#i = 0
+	move $t3, $zero			# min index
+	
+_FindMin.for:	        
+	lw $t1, ($s0)				#t1 = a[j]
+	slt $t2, $s2, $t1               	#if a[j] > min
+	beq $t2, 1,_FindMin.for.continue        #then continue
+	
+	
+	move $s2, $t1				#min = a[j]
+	move $t3, $t0 				# min index
+_FindMin.for.continue:
+	addi $t0,$t0,1			#i++
+	
+	addi $s0, $s0, 4		#a[i++]
+	slt $t2,$t0,$s1  		#if i < n
+	beq $t2, 1, _FindMin.for 	#if yes then for
+
+	move $v1, $s2
+	move $v0, $t3
+
+	j _FindMin.return
+
+_FindMin.return:
+##Procerduce footer------------------------------------------------
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s1,8($sp)
+	lw $s2,12($sp)
+	lw $t0,16($sp)
+	lw $t1,20($sp)
+	lw $t2,24($sp)
+	lw $t3,28($sp)
+	lw $t4,32($sp)
+	#Xoa stack
+	addi $sp,$sp,36
+
+	#Nhay ve dia chi goi ham
+	jr $ra
+	
+##------------------------------------------End of procerduce footer
+
 ##Use selection sort algorithm to sort content of array a which has n elements
 ##Params:
 ##	$a0: a
@@ -645,12 +721,12 @@ _selectionSort.for:
 	
 	add $a0, $s0, 4			#a[i+1]
 	sub $a1, $s2,$t0		#n-i
-	jal _FindMax			#jum to find max
+	jal _FindMin			#jum to find max
 	
 	add $t2, $v0, 1
 	move $t3, $v1
-	slt $t4, $t1,$t3
-	beq $t4,0,_selectionSort.for.continue
+	slt $t4, $t1,$t3		#compare a[i] < min
+	beq $t4,1,_selectionSort.for.continue #if yes continue
 	
 	#swap a[i] and max
 	li $t5, 4
